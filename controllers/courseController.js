@@ -1,12 +1,12 @@
 ////change everythjhing, copies all from group project
 
-const { Course, Student } = require("../models");
+const { Thought, User } = require("../models");
 
 module.exports = {
   // Get all courses
   async getCourses(req, res) {
     try {
-      const courses = await Course.find();
+      const courses = await Thought.find();
       res.json(courses);
     } catch (err) {
       res.status(500).json(err);
@@ -15,7 +15,7 @@ module.exports = {
   // Get a course
   async getSingleCourse(req, res) {
     try {
-      const course = await Course.findOne({ _id: req.params.courseId }).select(
+      const course = await Thought.findOne({ _id: req.params.courseId }).select(
         "-__v"
       );
 
@@ -31,7 +31,7 @@ module.exports = {
   // Create a course
   async createCourse(req, res) {
     try {
-      const course = await Course.create(req.body);
+      const course = await Thought.create(req.body);
       res.json(course);
     } catch (err) {
       console.log(err);
@@ -41,7 +41,7 @@ module.exports = {
   // Delete a course
   async deleteCourse(req, res) {
     try {
-      const course = await Course.findOneAndDelete({
+      const course = await Thought.findOneAndDelete({
         _id: req.params.courseId,
       });
 
@@ -49,8 +49,8 @@ module.exports = {
         res.status(404).json({ message: "No course with that ID" });
       }
 
-      await Student.deleteMany({ _id: { $in: course.students } });
-      res.json({ message: "Course and students deleted!" });
+      await User.deleteMany({ _id: { $in: course.students } });
+      res.json({ message: "Thought and students deleted!" });
     } catch (err) {
       res.status(500).json(err);
     }
@@ -58,7 +58,7 @@ module.exports = {
   // Update a course
   async updateCourse(req, res) {
     try {
-      const course = await Course.findOneAndUpdate(
+      const course = await Thought.findOneAndUpdate(
         { _id: req.params.courseId },
         { $set: req.body },
         { runValidators: true, new: true }
