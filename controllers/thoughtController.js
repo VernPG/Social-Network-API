@@ -1,8 +1,8 @@
-////change everythjhing, copies all from group project
+
 
 const { Thought, User } = require("../models");
 
-module.exports = {
+thoughtController = {
   // Get all Thoughts
   async getThoughts(req, res) {
     try {
@@ -13,11 +13,11 @@ module.exports = {
     }
   },
   // Get a thought by ID
-  async getThoughtById(req, res) {
+  async getSingleThought(req, res) {
     try {
-      const thought = await Thought.findOne({ _id: req.params.thoughtId }).select(
-        "-__v"
-      );
+      const thought = await Thought.findOne({
+        _id: req.params.thoughtId,
+      }).select("-__v");
 
       if (!thought) {
         return res.status(404).json({ message: "No thought with that ID" });
@@ -25,14 +25,22 @@ module.exports = {
 
       res.json(thought);
     } catch (err) {
-      res.status(500).json(err);
+      console.log(err);
+      return res.status(500).json(err);
     }
   },
   // Create a thought
   async createThought(req, res) {
     try {
       const thought = await Thought.create(req.body);
-      res.json(thought);
+
+      const user = await User.findOneAndUpdate(
+        { _id: req.body.userId },
+        { $addToSet: { thoughts: thought._id } },
+        { new: true }
+      );
+
+      res.json(user);
     } catch (err) {
       console.log(err);
       return res.status(500).json(err);
@@ -49,7 +57,6 @@ module.exports = {
         res.status(404).json({ message: "No thought with that ID" });
       }
 
-      await User.deleteMany({ _id: { $in: thought.users } });
       res.json({ message: "Thoughts deleted!" });
     } catch (err) {
       res.status(500).json(err);
@@ -75,7 +82,15 @@ module.exports = {
   },
   async createReaction(req, res) {
     try {
-      const reaction = await Reaction.create(req.body);
+      const reaction = await Thought.findByIdAndUpdate(
+        req.params.thoughtId,
+        {
+          $addToSet: {
+            reactions: req.body,
+          },
+        },
+        { new: true }
+      );
       res.json(reaction);
     } catch (err) {
       console.log(err);
@@ -84,18 +99,26 @@ module.exports = {
   },
   async deleteReaction(req, res) {
     try {
-      const reaction = await Reaction.findOneAndDelete({
-        _id: req.params.ReactionId,
-      });
+      const reaction = await Thought.findOneAndUpdate(
+        {
+          _id: req.params.thoughtId,
+        },
+        {
+          $pull: {
+            reactions: { reactionId: req.params.reactionId },
+          },
+        },
+        { new: true }
+      );
 
       if (!reaction) {
         res.status(404).json({ message: "No Reaction with that ID" });
       }
 
-      await User.deleteMany({ _id: { $in: reaction.users } });
       res.json({ message: "Reactions deleted!" });
     } catch (err) {
       res.status(500).json(err);
     }
   },
 };
+module.exports = thoughtController;

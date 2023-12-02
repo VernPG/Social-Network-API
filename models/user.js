@@ -12,15 +12,14 @@ const userSchema = new Schema(
       type: String,
       unique: true,
       required: true,
-      validate: {
-        validator: () => Promise.resolve(false),
-        message: "Email validation failed",
-      },
+      match: [
+        /\w+@\w+\.\w{2,10}/ 
+      ]
     },
-    thoughts: {
+    thoughts: [{
       type: Schema.Types.ObjectId,
-      ref: "User",
-    },
+      ref: "Thought",
+    }],
     friends: [
       {
         type: Schema.Types.ObjectId,
@@ -36,12 +35,11 @@ const userSchema = new Schema(
   }
 );
 userSchema
-  .virtual("friendCount")
-
+  .virtual("friendSchema")
   .get(function () {
     return this.friends.length;
   });
 
-const User = model("user", userSchema);
+const User = model("User", userSchema);
 
 module.exports = User;
